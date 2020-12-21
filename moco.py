@@ -313,9 +313,11 @@ class MoCoMethod(pl.LightningModule):
             self._dequeue_and_enqueue(k)
 
         self.log_dict(log_data)
-        summary_dict = {k: v.detach().item() for k, v in log_data.items()}
-        summary_dict2txtfig(summary_dict, prefix='trainstep', step=self.global_step,
-                            textlogger=global_textlogger)
+
+        if self.global_rank == 0:
+            summary_dict = {k: v.detach().item() for k, v in log_data.items()}
+            summary_dict2txtfig(summary_dict, prefix='trainstep', step=self.global_step,
+                                textlogger=global_textlogger)
         return {"loss": contrastive_loss}
 
     def validation_step(self, batch, batch_idx):
@@ -342,8 +344,9 @@ class MoCoMethod(pl.LightningModule):
         }
         print(f"Epoch {self.current_epoch} accuracy: train: {train_accuracy:.1f}%, validation: {valid_accuracy:.1f}%")
         self.log_dict(log_data)
-        summary_dict2txtfig(log_data, prefix='val', step=self.current_epoch,
-                            textlogger=global_textlogger)
+        if self.global_rank == 0:
+            summary_dict2txtfig(log_data, prefix='val', step=self.current_epoch,
+                                textlogger=global_textlogger)
         pass
 
     def configure_optimizers(self):
