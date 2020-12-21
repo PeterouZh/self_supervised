@@ -15,6 +15,8 @@ from sklearn.linear_model import LogisticRegression
 from torch.utils.data import DataLoader
 
 from template_lib.v2.logger import global_textlogger, summary_dict2txtfig
+from template_lib.modelarts import modelarts_utils
+from template_lib.v2.config_cfgnode import global_cfg
 
 import utils
 from batchrenorm import BatchRenorm1d
@@ -342,11 +344,13 @@ class MoCoMethod(pl.LightningModule):
             "T": self._get_temp(),
             "m": self._get_m(),
         }
-        print(f"Epoch {self.current_epoch} accuracy: train: {train_accuracy:.1f}%, validation: {valid_accuracy:.1f}%")
         self.log_dict(log_data)
         if self.global_rank == 0:
+            print(
+                f"Epoch {self.current_epoch} accuracy: train: {train_accuracy:.1f}%, validation: {valid_accuracy:.1f}%")
             summary_dict2txtfig(log_data, prefix='val', step=self.current_epoch,
                                 textlogger=global_textlogger)
+            modelarts_utils.modelarts_sync_results_dir(global_cfg, join=False)
         pass
 
     def configure_optimizers(self):
