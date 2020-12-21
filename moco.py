@@ -350,7 +350,8 @@ class MoCoMethod(pl.LightningModule):
                 f"Epoch {self.current_epoch} accuracy: train: {train_accuracy:.1f}%, validation: {valid_accuracy:.1f}%")
             summary_dict2txtfig(log_data, prefix='val', step=self.current_epoch,
                                 textlogger=global_textlogger)
-            modelarts_utils.modelarts_sync_results_dir(global_cfg, join=False)
+            if self.current_epoch % 5 == 0:
+                modelarts_utils.modelarts_sync_results_dir(global_cfg, join=False)
         pass
 
     def configure_optimizers(self):
